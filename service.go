@@ -124,6 +124,7 @@ func (client *Client) runRequestWithErrorHandler(req *http.Request, errorHandler
 	defer resp.Body.Close()
 
 	RateLimiting.updateRateLimits(resp)
+	RateLimiting.Exceeded()
 
 	return checkResponseForErrorsWithErrorHandler(resp, errorHandler)
 }

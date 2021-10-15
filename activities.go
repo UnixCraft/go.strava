@@ -126,6 +126,59 @@ func NewActivitiesService(client *Client) *ActivitiesService {
 	return &ActivitiesService{client}
 }
 
+/*************** MODIFIED FROM ORIGINAL ****************/
+
+type ActivitiesGetAllCall struct {
+	service *ActivitiesService
+	ops     map[string]interface{}
+}
+
+func (s *ActivitiesService) GetAll() *ActivitiesGetAllCall {
+	return &ActivitiesGetAllCall{
+		service: s,
+		ops:     make(map[string]interface{}),
+	}
+}
+
+func (c *ActivitiesGetAllCall) IncludeParameters() *ActivitiesGetAllCall {
+	c.ops["per_page"] = 200
+	c.ops["page"] = 1
+	return c
+}
+
+func (c *ActivitiesGetAllCall) Do(before time.Time, after time.Time) (*[]ActivityDetailed, error) {
+	c.ops["before"] = before.Unix()
+	c.ops["after"] = after.Unix()
+	time.Sleep(8 * time.Second)
+	data, err := c.service.client.run("GET", fmt.Sprintf("/athlete/activities"), c.ops)
+	if err != nil {
+		return nil, err
+	}
+	var activities []ActivityDetailed
+	var paged_activities []ActivityDetailed
+	err = json.Unmarshal(data, &paged_activities)
+	activities = append(activities, paged_activities...)
+	page := c.ops["page"].(int)
+	x := len(paged_activities)
+	for page >= 1 && x > 0 {
+		page += 1
+		c.ops["page"] = page
+		time.Sleep(8 * time.Second)
+		data, err := c.service.client.run("GET", fmt.Sprintf("/athlete/activities"), c.ops)
+		err = json.Unmarshal(data, &paged_activities)
+		if err != nil {
+			return nil, err
+		}
+		x = len(paged_activities)
+		activities = append(activities, paged_activities...)
+
+	}
+
+	return &activities, nil
+}
+
+/*********************END MODIFICATION***********************/
+
 /*********************************************************/
 
 type ActivitiesGetCall struct {
