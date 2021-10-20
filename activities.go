@@ -149,7 +149,6 @@ func (c *ActivitiesGetAllCall) IncludeParameters() *ActivitiesGetAllCall {
 func (c *ActivitiesGetAllCall) Do(before time.Time, after time.Time) (*[]ActivityDetailed, error) {
 	c.ops["before"] = before.Unix()
 	c.ops["after"] = after.Unix()
-	time.Sleep(8 * time.Second)
 	data, err := c.service.client.run("GET", fmt.Sprintf("/athlete/activities"), c.ops)
 	if err != nil {
 		return nil, err
